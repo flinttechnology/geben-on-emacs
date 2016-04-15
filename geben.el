@@ -1,5 +1,5 @@
 ;;; geben.el --- DBGp protocol frontend, a script debugger
-;; $Id$
+;; $Id: geben.el 118 2010-03-30 10:26:39Z fujinaka.tohru $
 ;; 
 ;; Filename: geben.el
 ;; Author: reedom <fujinaka.tohru@gmail.com>
@@ -2608,18 +2608,24 @@ The buffer commands are:
 
 (defun geben-dbgp-stack-update (session)
   (geben-dbgp-sequence
-    (geben-dbgp-command-stack-get session)
+      (geben-dbgp-command-stack-get session)
     (lambda (session cmd msg err)
       (unless err
-	(setf (geben-session-stack session) (xml-get-children msg 'stack))
-	(let* ((stack (car (xml-get-children msg 'stack)))
-	       (fileuri (xml-get-attribute-or-nil stack 'filename))
-	       (lineno (xml-get-attribute-or-nil stack 'lineno)))
-	  (and fileuri lineno
-	       (geben-session-cursor-update session fileuri lineno)))
-	(run-hook-with-args 'geben-dbgp-stack-update-hook
-			    session 0)))))
+        (setf (geben-session-stack session) (xml-get-children msg 'stack))
+        (let* ( ;;(stop (edebug))
+               (stack (car (xml-get-children msg 'stack)))
+               (fileuri (geben-dbgp-stack-update-get-fileuri-hack msg))
+               (lineno (xml-get-attribute-or-nil stack 'lineno)))
+          (and fileuri lineno
+               (geben-session-cursor-update session fileuri lineno)))
+        (run-hook-with-args 'geben-dbgp-stack-update-hook
+                            session 0)))))
 
+(defun geben-dbgp-stack-update-get-fileuri-hack (msg)
+  "a hack for hhvm hack, which is not xdebug complaint (https://github.com/facebook/hhvm/issues/3926)"
+  (if (equal "systemlib.phpxdebug" (xml-get-attribute-or-nil (car (xml-get-children msg 'stack)) 'filename))
+      (xml-get-attribute-or-nil (cadr (xml-get-children msg 'stack)) 'filename)
+    (xml-get-attribute-or-nil (car (xml-get-children msg 'stack)) 'filename)))
 
 ;;==============================================================
 ;; redirect
