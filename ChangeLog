@@ -1,3 +1,7 @@
+2016-04-18  reedom  <jdoull@flinttechnology.co.uk>
+
+        * [FIX] Workaround for geben unable to stop at xdebug_break using hhvm (https://github.com/facebook/hhvm/issues/3926).
+
 2010-03-29  reedom  <fujinaka.tohru@gmail.com>
         
         * [ADD] New command `geben-find-file', bound to 'C-c f' in geben-mode.
